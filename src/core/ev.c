@@ -1284,7 +1284,7 @@ int janet_loop_done(void) {
              janet_vm.extra_listeners);
 }
 
-JanetFiber *janet_loop1(void) {
+JanetFiber *janet_loop1_timeout(int64_t timeout) {
     /* Schedule expired timers */
     JanetTimeout to;
     JanetTimestamp now = ts_now();
@@ -1362,12 +1362,22 @@ JanetFiber *janet_loop1(void) {
         }
         /* Run polling implementation only if pending timeouts or pending events */
         if (janet_vm.tq_count || janet_vm.listener_count || janet_vm.extra_listeners) {
-            janet_loop1_impl(has_timeout, to.when);
+            int has_deadline = timeout >= 0 || has_timeout;
+            int deadline = timeout + ts_now();
+            if (has_timeout && to.when < deadline) {
+                deadline = to.when;
+            }
+
+            janet_loop1_impl(has_deadline, deadline);
         }
     }
 
     /* No fiber was interrupted */
     return NULL;
+}
+
+JanetFiber *janet_loop1(void) {
+    return janet_loop1_timeout(-1);
 }
 
 /* Same as janet_interpreter_interrupt, but will also

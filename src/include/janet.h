@@ -1368,6 +1368,7 @@ JANET_API void janet_loop(void);
  */
 JANET_API int janet_loop_done(void);
 JANET_API JanetFiber *janet_loop1(void);
+JANET_API JanetFiber *janet_loop1_timeout(int64_t timeout);
 JANET_API void janet_loop1_interrupt(JanetVM *vm);
 
 /* Wrapper around streams */
