@@ -1,0 +1,13 @@
+#!/bin/bash
+
+branches=(guest-loop abstract-callable)
+
+if [[ $(git rev-parse --abbrev-ref HEAD) != "integration" ]]; then
+    echo >&2 "fatal: this script must be run on the 'integration' branch"
+    exit 1
+fi
+
+git reset --hard integration-base
+for branch in "${branches[@]}"; do
+    git merge --no-edit "$branch"
+done
