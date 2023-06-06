@@ -971,6 +971,24 @@ static JanetSignal run_vm(JanetFiber *fiber, Janet in) {
         if (fiber->stacktop > fiber->maxstack) {
             vm_throw("stack overflow");
         }
+        if (janet_checktype(callee, JANET_ABSTRACT)) {
+            JanetAbstract abst = janet_unwrap_abstract(callee);
+            const JanetAbstractType *at = janet_abstract_type(abst);
+            if (NULL != at->callable) {
+                vm_commit();
+                Janet target = callee;
+                callee = at->callable(abst);
+                int32_t argc = fiber->stacktop - fiber->stackstart;
+                janet_fiber_push(fiber, target);
+                if (argc != 0) {
+                    memmove(
+                        fiber->data + fiber->stackstart + 1,
+                        fiber->data + fiber->stackstart,
+                        argc * sizeof(Janet));
+                    fiber->data[fiber->stackstart] = target;
+                }
+            }
+        }
         if (janet_checktype(callee, JANET_KEYWORD)) {
             vm_commit();
             callee = resolve_method(callee, fiber);
@@ -1010,6 +1028,24 @@ static JanetSignal run_vm(JanetFiber *fiber, Janet in) {
         Janet callee = stack[D];
         if (fiber->stacktop > fiber->maxstack) {
             vm_throw("stack overflow");
+        }
+        if (janet_checktype(callee, JANET_ABSTRACT)) {
+            JanetAbstract abst = janet_unwrap_abstract(callee);
+            const JanetAbstractType *at = janet_abstract_type(abst);
+            if (NULL != at->callable) {
+                vm_commit();
+                Janet target = callee;
+                callee = at->callable(abst);
+                int32_t argc = fiber->stacktop - fiber->stackstart;
+                janet_fiber_push(fiber, target);
+                if (argc != 0) {
+                    memmove(
+                        fiber->data + fiber->stackstart + 1,
+                        fiber->data + fiber->stackstart,
+                        argc * sizeof(Janet));
+                    fiber->data[fiber->stackstart] = target;
+                }
+            }
         }
         if (janet_checktype(callee, JANET_KEYWORD)) {
             vm_commit();

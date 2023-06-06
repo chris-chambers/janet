@@ -1131,6 +1131,7 @@ struct JanetAbstractType {
     Janet(*call)(void *p, int32_t argc, Janet *argv);
     size_t (*length)(void *p, size_t len);
     JanetByteView(*bytes)(void *p, size_t len);
+    Janet (*callable)(void *p);
 };
 
 /* Some macros to let us add extra types to JanetAbstract types without
@@ -1150,7 +1151,8 @@ struct JanetAbstractType {
 #define JANET_ATEND_NEXT        NULL,JANET_ATEND_CALL
 #define JANET_ATEND_CALL        NULL,JANET_ATEND_LENGTH
 #define JANET_ATEND_LENGTH      NULL,JANET_ATEND_BYTES
-#define JANET_ATEND_BYTES
+#define JANET_ATEND_BYTES       NULL,JANET_ATEND_CALLABLE
+#define JANET_ATEND_CALLABLE
 
 struct JanetReg {
     const char *name;
