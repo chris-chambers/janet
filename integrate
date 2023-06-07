@@ -1,6 +1,15 @@
 #!/bin/bash
 
-branches=(guest-loop abstract-callable)
+branches=(
+    # merged
+    ev-gather-cancel
+    # mergeable
+    channel-close-resumptions
+
+    # needs proposal/debata
+    guest-loop
+    abstract-callable
+)
 
 if [[ $(git rev-parse --abbrev-ref HEAD) != "integration" ]]; then
     echo >&2 "fatal: this script must be run on the 'integration' branch"
