@@ -1196,7 +1196,6 @@
   (def kw (keyword prefix (slice alias 1 -2)))
   ~(def ,alias :dyn ,;more ,kw))
 
-
 (defn has-key?
   "Check if a data structure `ds` contains the key `key`."
   [ds key]
@@ -1215,6 +1214,7 @@
 (defdyn *debug* "Enables a built in debugger on errors and other useful features for debugging in a repl.")
 (defdyn *exit* "When set, will cause the current context to complete. Can be set to exit from repl (or file), for example.")
 (defdyn *exit-value* "Set the return value from `run-context` upon an exit. By default, `run-context` will return nil.")
+(defdyn *task-id* "When spawning a thread or fiber, the task-id can be assigned for concurrecny control.")
 
 (defdyn *macro-form*
   "Inside a macro, is bound to the source form that invoked the macro")
@@ -2530,8 +2530,8 @@
                 (set good false)
                 (def {:error err :line line :column column :fiber errf} res)
                 (on-compile-error err errf where (or line l) (or column c))))))
-        guard))
-    (fiber/setenv f env)
+        guard
+        env))
     (while (fiber/can-resume? f)
       (def res (resume f resumeval))
       (when good (set resumeval (onstatus f res)))))
@@ -2868,7 +2868,7 @@
     (if (= :dead fs)
       (when is-repl
         (put env '_ @{:value x})
-        (printf (get env :pretty-format "%q") x)
+        (printf (get env *pretty-format* "%q") x)
         (flush))
       (do
         (debug/stacktrace f x "")
@@ -3868,8 +3868,7 @@
     (def guard (if (get env :debug) :ydt :y))
     (defn wrap-main [&]
       (main ;subargs))
-    (def f (fiber/new wrap-main guard))
-    (fiber/setenv f env)
+    (def f (fiber/new wrap-main guard env))
     (var res nil)
     (while (fiber/can-resume? f)
       (set res (resume f res))
@@ -4167,10 +4166,11 @@
 
   (defn do-one-file
     [fname]
-    (print "\n/* " fname " */")
-    (print "#line 0 \"" fname "\"\n")
-    (def source (slurp fname))
-    (print (string/replace-all "\r" "" source)))
+    (if-not (has-value? boot/args "image-only") (do
+      (print "\n/* " fname " */")
+      (print "#line 0 \"" fname "\"\n")
+      (def source (slurp fname))
+      (print (string/replace-all "\r" "" source)))))
 
   (do-one-file feature-header)
 

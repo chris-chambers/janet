@@ -1171,9 +1171,9 @@ JANET_CORE_FN(cfun_channel_close,
                 janet_ev_post_event(vm, janet_thread_chan_cb, msg);
             } else {
                 if (writer.mode == JANET_CP_MODE_CHOICE_WRITE) {
-                    janet_schedule(writer.fiber, janet_wrap_nil());
-                } else {
                     janet_schedule(writer.fiber, make_close_result(channel));
+                } else {
+                    janet_schedule(writer.fiber, janet_wrap_nil());
                 }
             }
         }
@@ -1190,9 +1190,9 @@ JANET_CORE_FN(cfun_channel_close,
                 janet_ev_post_event(vm, janet_thread_chan_cb, msg);
             } else {
                 if (reader.mode == JANET_CP_MODE_CHOICE_READ) {
-                    janet_schedule(reader.fiber, janet_wrap_nil());
-                } else {
                     janet_schedule(reader.fiber, make_close_result(channel));
+                } else {
+                    janet_schedule(reader.fiber, janet_wrap_nil());
                 }
             }
         }
@@ -2915,10 +2915,10 @@ static JanetEVGenericMessage janet_go_thread_subr(JanetEVGenericMessage args) {
                 janet_panicf("expected function or fiber, got %v", fiberv);
             }
             JanetFunction *func = janet_unwrap_function(fiberv);
-            if (func->def->min_arity > 1) {
+            fiber = janet_fiber(func, 64, func->def->min_arity, &value);
+            if (fiber == NULL) {
                 janet_panicf("thread function must accept 0 or 1 arguments");
             }
-            fiber = janet_fiber(func, 64, func->def->min_arity, &value);
             fiber->flags |=
                 JANET_FIBER_MASK_ERROR |
                 JANET_FIBER_MASK_USER0 |
