@@ -3,8 +3,9 @@
 branches=(
     # merged
     ev-gather-cancel
-    # mergeable
     channel-close-resumptions
+    # mergeable
+    macro-lints-fix
 
     # needs proposal/debata
     guest-loop
