@@ -971,12 +971,21 @@ JanetFuncDef *janetc_pop_funcdef(JanetCompiler *c) {
     for (int32_t i = 0; i < janet_v_count(scope->syms); i++) {
         SymPair pair = scope->syms[i];
         if (pair.sym2) {
-            if (pair.death_pc == UINT32_MAX) {
-                pair.death_pc = def->bytecode_length;
-            }
             JanetSymbolMap jsm;
-            jsm.birth_pc = pair.birth_pc;
-            jsm.death_pc = pair.death_pc;
+            if (pair.death_pc == UINT32_MAX) {
+                jsm.death_pc = def->bytecode_length;
+            } else {
+                jsm.death_pc = pair.death_pc - scope->bytecode_start;
+            }
+            /* Handle birth_pc == 0 correctly */
+            if ((uint32_t) scope->bytecode_start > pair.birth_pc) {
+                jsm.birth_pc = 0;
+            } else {
+                jsm.birth_pc = pair.birth_pc - scope->bytecode_start;
+            }
+            janet_assert(jsm.birth_pc <= jsm.death_pc, "birth pc after death pc");
+            janet_assert(jsm.birth_pc < (uint32_t) def->bytecode_length, "bad birth pc");
+            janet_assert(jsm.death_pc <= (uint32_t) def->bytecode_length, "bad death pc");
             jsm.slot_index = pair.slot.index;
             jsm.symbol = pair.sym2;
             janet_v_push(locals, jsm);
@@ -988,6 +997,10 @@ JanetFuncDef *janetc_pop_funcdef(JanetCompiler *c) {
 
     /* Pop the scope */
     janetc_popscope(c);
+
+    /* Do basic optimization */
+    janet_bytecode_movopt(def);
+    janet_bytecode_remove_noops(def);
 
     return def;
 }

@@ -182,7 +182,7 @@ extern "C" {
 /* Enable or disable the FFI library. Currently, FFI only enabled on
  * x86-64 operating systems. */
 #ifndef JANET_NO_FFI
-#if !defined(__EMSCRIPTEN__) && (defined(__x86_64__) || defined(_M_X64))
+#if !defined(__EMSCRIPTEN__)
 #define JANET_FFI
 #endif
 #endif
@@ -568,6 +568,7 @@ typedef void *JanetAbstract;
 #define JANET_STREAM_WRITABLE 0x400
 #define JANET_STREAM_ACCEPTABLE 0x800
 #define JANET_STREAM_UDPSERVER 0x1000
+#define JANET_STREAM_TOCLOSE 0x10000
 
 typedef enum {
     JANET_ASYNC_EVENT_INIT,
@@ -1479,6 +1480,7 @@ JANET_API void janet_ev_readchunk(JanetStream *stream, JanetBuffer *buf, int32_t
 JANET_API void janet_ev_recv(JanetStream *stream, JanetBuffer *buf, int32_t nbytes, int flags);
 JANET_API void janet_ev_recvchunk(JanetStream *stream, JanetBuffer *buf, int32_t nbytes, int flags);
 JANET_API void janet_ev_recvfrom(JanetStream *stream, JanetBuffer *buf, int32_t nbytes, int flags);
+JANET_API void janet_ev_connect(JanetStream *stream, int flags);
 #endif
 
 /* Write async to a stream */

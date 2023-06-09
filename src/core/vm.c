@@ -1423,6 +1423,7 @@ static JanetSignal janet_continue_no_check(JanetFiber *fiber, Janet in, Janet *o
         if (sig != JANET_SIGNAL_OK && !(child->flags & (1 << sig))) {
             *out = in;
             janet_fiber_set_status(fiber, sig);
+            fiber->last_value = child->last_value;
             return sig;
         }
         /* Check if we need any special handling for certain opcodes */
@@ -1512,14 +1513,14 @@ JanetSignal janet_pcall(
     JanetFiber *fiber;
     if (f && *f) {
         fiber = janet_fiber_reset(*f, fun, argc, argv);
+        if (NULL == fiber) {
+            *out = janet_cstringv("arity mismatch");
+            return JANET_SIGNAL_ERROR;
+        }
     } else {
         fiber = janet_fiber(fun, 64, argc, argv);
     }
     if (f) *f = fiber;
-    if (!fiber) {
-        *out = janet_cstringv("arity mismatch");
-        return JANET_SIGNAL_ERROR;
-    }
     return janet_continue(fiber, janet_wrap_nil(), out);
 }
 
